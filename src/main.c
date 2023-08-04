@@ -161,7 +161,7 @@ void app_main() {
     pngle_feed(png,test,sizeof(test));
     pwr_gpio_config.mode = GPIO_MODE_OUTPUT;
     pwr_gpio_config.pin_bit_mask = 1ULL << 4;
-    // Initialize the GPIO of backlight
+    // Initialize the power pin GPIO (T-QT Pro)
     ESP_ERROR_CHECK(gpio_config(&pwr_gpio_config));
     ESP_ERROR_CHECK(gpio_set_level((gpio_num_t)4, 1));
     
