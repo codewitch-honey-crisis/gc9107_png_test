@@ -158,7 +158,6 @@ void app_main() {
         while(1) vTaskDelay(5);
     }
     pngle_set_draw_callback(png,pngle_draw_cb,NULL);
-    pngle_feed(png,test,sizeof(test));
     pwr_gpio_config.mode = GPIO_MODE_OUTPUT;
     pwr_gpio_config.pin_bit_mask = 1ULL << 4;
     // Initialize the power pin GPIO (T-QT Pro)
@@ -167,10 +166,14 @@ void app_main() {
     
     init_spi();
     init_display(LCD1_PIN_NUM_CS,LCD1_PIN_NUM_DC,LCD1_PIN_NUM_RST,LCD1_PIN_NUM_BK_LIGHT,&panel_handle1,&io_handle1);
+    // init more displays here - if your RST all share the same line pass -1 for subsequent reset pins.
     if(panel_handle1==NULL) {
         printf("Panel not initialized.\n");
         while(1) vTaskDelay(5);
     }
+    // load the png
+    pngle_feed(png,test,sizeof(test));
+    // draw it to the first display
     esp_lcd_panel_draw_bitmap(panel_handle1,0,0,LCD_H_RES,LCD_V_RES,fb_data);
     while(1) vTaskDelay(5);
     // not necessary
