@@ -4,3 +4,5 @@
 .vscode/launch.json
 .vscode/ipch
 CMakeLists.txt
+CMakeLists.txt
+sdkconfig.ttgo-t1-esp-idf
