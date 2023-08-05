@@ -56,10 +56,7 @@ esp_lcd_panel_io_handle_t io_handle2 = NULL;
 uint8_t fb_data[LCD_V_RES*LCD_H_RES*2];
 // the PNG loader
 pngle_t* png = NULL;
-typedef struct {
 
-} msg_t;
-QueueHandle_t msg_queue;
 void init_power() {
 #ifdef S3_T_QT
     // for the T-QT Pro. 
