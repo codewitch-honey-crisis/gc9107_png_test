@@ -180,14 +180,7 @@ void pngle_draw_cb(pngle_t* pngle, uint32_t x, uint32_t y, uint32_t w, uint32_t 
 // }
 void app_main() {
     init_power();
-    // initialize the png loader
-    png = pngle_new();
-    if(png==NULL) {
-        printf("PNG library not initialized.\n");
-        while(1) vTaskDelay(5);
-    }
-    pngle_set_draw_callback(png,pngle_draw_cb,NULL);
-    
+       
     init_spi();
     init_display(LCD_HOST, LCD1_PIN_NUM_CS,LCD1_PIN_NUM_DC,LCD1_PIN_NUM_RST,LCD1_PIN_NUM_BK_LIGHT,&panel_handle1,&io_handle1);
     // init more displays here - if your RST all share the same line pass -1 for subsequent reset pins.
@@ -195,11 +188,25 @@ void app_main() {
         printf("Panel not initialized.\n");
         while(1) vTaskDelay(5);
     }
+    // initialize the png loader
+    png = pngle_new();
+    if(png==NULL) {
+        printf("PNG library not initialized.\n");
+        while(1) vTaskDelay(5);
+    }
+    pngle_set_draw_callback(png,pngle_draw_cb,NULL);
+    // load the png
+    pngle_feed(png,test,sizeof(test));
+    // draw it to the first display
+    esp_lcd_panel_draw_bitmap(panel_handle1,0,0,LCD_H_RES,LCD_V_RES,fb_data);
+    vTaskDelay(pdMS_TO_TICKS(3000));
+    pngle_reset(png);
     // load the png
     pngle_feed(png,test2,sizeof(test2));
     // draw it to the first display
     esp_lcd_panel_draw_bitmap(panel_handle1,0,0,LCD_H_RES,LCD_V_RES,fb_data);
+    pngle_destroy(png);
     while(1) vTaskDelay(5);
     // not necessary
-    pngle_destroy(png);
+    
 }
