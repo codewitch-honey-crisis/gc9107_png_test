@@ -86,7 +86,7 @@ void init_spi() {
     ESP_ERROR_CHECK(spi_bus_initialize(LCD_HOST, &buscfg, SPI_DMA_CH_AUTO));
 }
 
-void init_display(int host, uint8_t pin_cs, uint8_t pin_dc,uint8_t pin_rst,uint8_t pin_bkl,esp_lcd_panel_handle_t* out_panel_handle,esp_lcd_panel_io_handle_t* out_io_handle) {
+void init_display(int host, int8_t pin_cs, int8_t pin_dc,int8_t pin_rst,int8_t pin_bkl,esp_lcd_panel_handle_t* out_panel_handle,esp_lcd_panel_io_handle_t* out_io_handle) {
     if(pin_bkl>-1) {
         gpio_config_t bk_gpio_config;
         memset(&bk_gpio_config,0,sizeof(bk_gpio_config));
