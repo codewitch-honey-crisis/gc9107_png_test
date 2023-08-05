@@ -197,16 +197,18 @@ void app_main() {
     pngle_set_draw_callback(png,pngle_draw_cb,NULL);
     // load the png
     pngle_feed(png,test,sizeof(test));
+    pngle_reset(png);
     // draw it to the first display
     esp_lcd_panel_draw_bitmap(panel_handle1,0,0,LCD_H_RES,LCD_V_RES,fb_data);
     vTaskDelay(pdMS_TO_TICKS(3000));
-    pngle_reset(png);
+    
     // load the png
     pngle_feed(png,test2,sizeof(test2));
+    pngle_reset(png);
     // draw it to the first display
     esp_lcd_panel_draw_bitmap(panel_handle1,0,0,LCD_H_RES,LCD_V_RES,fb_data);
-    pngle_destroy(png);
     while(1) vTaskDelay(5);
     // not necessary
+    pngle_destroy(png);
     
 }
