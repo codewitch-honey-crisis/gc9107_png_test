@@ -66,7 +66,7 @@ void init_spi() {
     ESP_ERROR_CHECK(spi_bus_initialize(LCD_HOST, &buscfg, SPI_DMA_CH_AUTO));
 }
 
-void init_display(uint8_t pin_cs, uint8_t pin_dc,uint8_t pin_rst,uint8_t pin_bkl,esp_lcd_panel_handle_t* out_panel_handle,esp_lcd_panel_io_handle_t* out_io_handle) {
+void init_display(int host, uint8_t pin_cs, uint8_t pin_dc,uint8_t pin_rst,uint8_t pin_bkl,esp_lcd_panel_handle_t* out_panel_handle,esp_lcd_panel_io_handle_t* out_io_handle) {
     gpio_config_t bk_gpio_config;
     memset(&bk_gpio_config,0,sizeof(bk_gpio_config));
 
@@ -87,7 +87,7 @@ void init_display(uint8_t pin_cs, uint8_t pin_dc,uint8_t pin_rst,uint8_t pin_bkl
     io_config.trans_queue_depth = 10;
     
     // Attach the LCD to the SPI bus
-    ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_HOST, &io_config, out_io_handle));
+    ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)host, &io_config, out_io_handle));
 
     esp_lcd_panel_dev_config_t panel_config;
     memset(&panel_config,0,sizeof(panel_config));
@@ -177,6 +177,7 @@ void pngle_draw_cb(pngle_t* pngle, uint32_t x, uint32_t y, uint32_t w, uint32_t 
 // }
 void app_main() {
     init_power();
+    // initialize the png loader
     png = pngle_new();
     if(png==NULL) {
         printf("PNG library not initialized.\n");
@@ -185,7 +186,7 @@ void app_main() {
     pngle_set_draw_callback(png,pngle_draw_cb,NULL);
     
     init_spi();
-    init_display(LCD1_PIN_NUM_CS,LCD1_PIN_NUM_DC,LCD1_PIN_NUM_RST,LCD1_PIN_NUM_BK_LIGHT,&panel_handle1,&io_handle1);
+    init_display(LCD_HOST, LCD1_PIN_NUM_CS,LCD1_PIN_NUM_DC,LCD1_PIN_NUM_RST,LCD1_PIN_NUM_BK_LIGHT,&panel_handle1,&io_handle1);
     // init more displays here - if your RST all share the same line pass -1 for subsequent reset pins.
     if(panel_handle1==NULL) {
         printf("Panel not initialized.\n");
