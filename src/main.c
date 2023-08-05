@@ -96,10 +96,11 @@ void init_display(int host, uint8_t pin_cs, uint8_t pin_dc,uint8_t pin_rst,uint8
 
         bk_gpio_config.mode = GPIO_MODE_OUTPUT;
         bk_gpio_config.pin_bit_mask = 1ULL << pin_bkl;
-    }
-    // Initialize the GPIO of backlight
-    ESP_ERROR_CHECK(gpio_config(&bk_gpio_config));
+        // Initialize the GPIO of backlight
+        ESP_ERROR_CHECK(gpio_config(&bk_gpio_config));
 
+    }
+    
     esp_lcd_panel_io_spi_config_t io_config;
     memset(&io_config,0,sizeof(io_config));
     io_config.dc_gpio_num = pin_dc;
