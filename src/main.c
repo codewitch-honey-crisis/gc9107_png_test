@@ -133,7 +133,7 @@ void pngle_draw_cb(pngle_t* pngle, uint32_t x, uint32_t y, uint32_t w, uint32_t 
     uint8_t g = rgba[1]>>2;
     uint8_t b = rgba[1]>>3;
     uint16_t col = (r<<11)|(g<<5)|b;
-    //uint16_t col = (b<<11)|(g<<5)|r;
+    // uint16_t col = (b<<11)|(g<<5)|r; // reversed
     uint8_t msb = col>>8;
     uint8_t lsb = col&0xFF;
     size_t stride = LCD_H_RES*2;
@@ -148,7 +148,18 @@ void pngle_draw_cb(pngle_t* pngle, uint32_t x, uint32_t y, uint32_t w, uint32_t 
         start+=stride;
     }
 }
+// void read_png(FILE* handle, uint8_t* data,size_t len) {
+//     uint8_t png_feed[1024];
+//     size_t png_remain = 0;
+//     size_t png_len = 0;
+//     while ((png_len = read(handle, png_feed + png_remain, sizeof(png_feed) - png_remain)) > 0) {
+//         int fed = pngle_feed(png, png_feed, png_remain + png_len);
+//         if (fed < 0) errx(1, "%s", pngle_error(png));
 
+//         png_remain = png_remain + png_len - fed;
+//         if (png_remain > 0) memmove(png_feed, png_feed + fed, png_remain);
+//     }
+// }
 void app_main() {
     gpio_config_t pwr_gpio_config;
     memset(&pwr_gpio_config,0,sizeof(pwr_gpio_config));
