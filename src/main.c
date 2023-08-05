@@ -17,7 +17,7 @@
 #define LCD_PIXEL_CLOCK_HZ (20 * 1000 * 1000)
 #define LCD_BK_LIGHT_ON_LEVEL  0
 #define LCD_BK_LIGHT_OFF_LEVEL !LCD_BK_LIGHT_ON_LEVEL
-#define LCD_PIN_NUM_DATA0          2  /*!< for 1-line SPI, this also refereed as MOSI */
+#define LCD_PIN_NUM_DATA0          2  //!< for 1-line SPI, this also refereed as MOSI
 #define LCD_PIN_NUM_PCLK           3
 #define LCD1_PIN_NUM_CS             5
 #define LCD1_PIN_NUM_DC             6
