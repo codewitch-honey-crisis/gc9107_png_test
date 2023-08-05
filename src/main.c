@@ -37,6 +37,20 @@
 esp_lcd_panel_handle_t panel_handle1 = NULL;
 esp_lcd_panel_io_handle_t io_handle1 = NULL;
 
+void init_power() {
+    // for the T-QT Pro. 
+    // if the device is battery powered
+    // put power init code here
+    gpio_config_t pwr_gpio_config;
+    memset(&pwr_gpio_config,0,sizeof(pwr_gpio_config));
+    pwr_gpio_config.mode = GPIO_MODE_OUTPUT;
+    pwr_gpio_config.pin_bit_mask = 1ULL << 4;
+    // Initialize the power pin GPIO (T-QT Pro)
+    ESP_ERROR_CHECK(gpio_config(&pwr_gpio_config));
+    ESP_ERROR_CHECK(gpio_set_level((gpio_num_t)4, 1));
+    
+}
+
 void init_spi() {
     spi_bus_config_t buscfg;
     memset(&buscfg,0,sizeof(buscfg));
@@ -148,6 +162,7 @@ void pngle_draw_cb(pngle_t* pngle, uint32_t x, uint32_t y, uint32_t w, uint32_t 
         start+=stride;
     }
 }
+// adapt this to read and decode the PNG from the serial stream into fb_data
 // void read_png(FILE* handle, uint8_t* data,size_t len) {
 //     uint8_t png_feed[1024];
 //     size_t png_remain = 0;
@@ -161,19 +176,13 @@ void pngle_draw_cb(pngle_t* pngle, uint32_t x, uint32_t y, uint32_t w, uint32_t 
 //     }
 // }
 void app_main() {
-    gpio_config_t pwr_gpio_config;
-    memset(&pwr_gpio_config,0,sizeof(pwr_gpio_config));
+    init_power();
     png = pngle_new();
     if(png==NULL) {
         printf("PNG library not initialized.\n");
         while(1) vTaskDelay(5);
     }
     pngle_set_draw_callback(png,pngle_draw_cb,NULL);
-    pwr_gpio_config.mode = GPIO_MODE_OUTPUT;
-    pwr_gpio_config.pin_bit_mask = 1ULL << 4;
-    // Initialize the power pin GPIO (T-QT Pro)
-    ESP_ERROR_CHECK(gpio_config(&pwr_gpio_config));
-    ESP_ERROR_CHECK(gpio_set_level((gpio_num_t)4, 1));
     
     init_spi();
     init_display(LCD1_PIN_NUM_CS,LCD1_PIN_NUM_DC,LCD1_PIN_NUM_RST,LCD1_PIN_NUM_BK_LIGHT,&panel_handle1,&io_handle1);
