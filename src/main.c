@@ -90,12 +90,13 @@ void init_spi() {
 }
 
 void init_display(int host, uint8_t pin_cs, uint8_t pin_dc,uint8_t pin_rst,uint8_t pin_bkl,esp_lcd_panel_handle_t* out_panel_handle,esp_lcd_panel_io_handle_t* out_io_handle) {
-    gpio_config_t bk_gpio_config;
-    memset(&bk_gpio_config,0,sizeof(bk_gpio_config));
+    if(pin_bkl>-1) {
+        gpio_config_t bk_gpio_config;
+        memset(&bk_gpio_config,0,sizeof(bk_gpio_config));
 
-    bk_gpio_config.mode = GPIO_MODE_OUTPUT;
-    bk_gpio_config.pin_bit_mask = 1ULL << pin_bkl;
-
+        bk_gpio_config.mode = GPIO_MODE_OUTPUT;
+        bk_gpio_config.pin_bit_mask = 1ULL << pin_bkl;
+    }
     // Initialize the GPIO of backlight
     ESP_ERROR_CHECK(gpio_config(&bk_gpio_config));
 
@@ -142,9 +143,10 @@ void init_display(int host, uint8_t pin_cs, uint8_t pin_dc,uint8_t pin_rst,uint8
 
     // Turn on the screen
     ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(*out_panel_handle, true));
-
-    // Turn on backlight (Different LCD screens may need different levels)
-    ESP_ERROR_CHECK(gpio_set_level((gpio_num_t)pin_bkl, LCD_BK_LIGHT_ON_LEVEL));
+    if(pin_bkl>-1) {
+        // Turn on backlight (Different LCD screens may need different levels)
+        ESP_ERROR_CHECK(gpio_set_level((gpio_num_t)pin_bkl, LCD_BK_LIGHT_ON_LEVEL));
+    }
     if(out_panel_handle==NULL) {
         printf("Panel not initialized.\n");
         while(1) vTaskDelay(5);
