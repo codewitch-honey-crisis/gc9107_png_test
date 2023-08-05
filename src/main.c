@@ -44,10 +44,17 @@
 #define LCD_BK_LIGHT_OFF_LEVEL !LCD_BK_LIGHT_ON_LEVEL
 #define LCD_PIN_NUM_DATA0          23  //!< for 1-line SPI, this also refereed as MOSI
 #define LCD_PIN_NUM_PCLK           18
+
 #define LCD1_PIN_NUM_CS             5
 #define LCD1_PIN_NUM_DC             2
 #define LCD1_PIN_NUM_RST            15
 #define LCD1_PIN_NUM_BK_LIGHT       4
+
+#define LCD2_PIN_NUM_CS             6
+#define LCD2_PIN_NUM_DC             3
+#define LCD2_PIN_NUM_RST            16
+#define LCD2_PIN_NUM_BK_LIGHT       8
+
 #define LCD_X_OFFSET               2
 #define LCD_Y_OFFSET               1
 #define LCD_INVERT_COLOR
@@ -64,6 +71,9 @@
 // the following two lines are required for each screen
 esp_lcd_panel_handle_t panel_handle1 = NULL;
 esp_lcd_panel_io_handle_t io_handle1 = NULL;
+
+esp_lcd_panel_handle_t panel_handle2 = NULL;
+esp_lcd_panel_io_handle_t io_handle2 = NULL;
 
 // holds our buffer for sending to the display.
 uint8_t fb_data[LCD_V_RES*LCD_H_RES*2];
@@ -225,6 +235,7 @@ void app_main() {
     init_power();   
     init_spi();
     init_display(LCD_HOST, LCD1_PIN_NUM_CS,LCD1_PIN_NUM_DC,LCD1_PIN_NUM_RST,LCD1_PIN_NUM_BK_LIGHT,&panel_handle1,&io_handle1);
+    init_display(LCD_HOST, LCD2_PIN_NUM_CS,LCD2_PIN_NUM_DC,LCD2_PIN_NUM_RST,LCD2_PIN_NUM_BK_LIGHT,&panel_handle2,&io_handle2);
     init_png();
     // load the png into fb_data
     pngle_feed(png,test,sizeof(test));
@@ -232,12 +243,11 @@ void app_main() {
     pngle_reset(png);
     // draw it to the first display
     esp_lcd_panel_draw_bitmap(panel_handle1,0,0,LCD_H_RES,LCD_V_RES,fb_data);
-    vTaskDelay(pdMS_TO_TICKS(3000));
     // load the png into fb_data
     pngle_feed(png,test2,sizeof(test2));
     pngle_reset(png);
-    // draw it to the first display
-    esp_lcd_panel_draw_bitmap(panel_handle1,0,0,LCD_H_RES,LCD_V_RES,fb_data);
+    // draw it to the second display
+    esp_lcd_panel_draw_bitmap(panel_handle2,0,0,LCD_H_RES,LCD_V_RES,fb_data);
     while(1) vTaskDelay(5);
     // not necessary
     pngle_destroy(png);
