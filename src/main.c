@@ -13,6 +13,9 @@
 #include "pngle.h"
 #define TEST_IMPLEMENTATION
 #include "test.h"
+#define TEST2_IMPLEMENTATION
+#include "test2.h"
+
 #define LCD_HOST       SPI2_HOST
 #define LCD_PIXEL_CLOCK_HZ (20 * 1000 * 1000)
 #define LCD_BK_LIGHT_ON_LEVEL  0
@@ -193,7 +196,7 @@ void app_main() {
         while(1) vTaskDelay(5);
     }
     // load the png
-    pngle_feed(png,test,sizeof(test));
+    pngle_feed(png,test2,sizeof(test2));
     // draw it to the first display
     esp_lcd_panel_draw_bitmap(panel_handle1,0,0,LCD_H_RES,LCD_V_RES,fb_data);
     while(1) vTaskDelay(5);
