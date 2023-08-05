@@ -16,28 +16,7 @@
 #include "test.h"
 #define TEST2_IMPLEMENTATION
 #include "test2.h"
-#ifdef S3_T_QT
-#define LCD_HOST       SPI2_HOST
-#define LCD_PIXEL_CLOCK_HZ (20 * 1000 * 1000)
-#define LCD_BK_LIGHT_ON_LEVEL  0
-#define LCD_BK_LIGHT_OFF_LEVEL !LCD_BK_LIGHT_ON_LEVEL
-#define LCD_PIN_NUM_DATA0          2  //!< for 1-line SPI, this also refereed as MOSI
-#define LCD_PIN_NUM_PCLK           3
-#define LCD1_PIN_NUM_CS             5
-#define LCD1_PIN_NUM_DC             6
-#define LCD1_PIN_NUM_RST            1
-#define LCD1_PIN_NUM_BK_LIGHT       10
-#define LCD_X_OFFSET               2
-#define LCD_Y_OFFSET               1
-#define LCD_INVERT_COLOR
-#define LCD_COLOR_SPACE LCD_RGB_ENDIAN_BGR
-// The pixel number in horizontal and vertical
-#define LCD_H_RES              128
-#define LCD_V_RES              128
-// Bit number used to represent command and parameter
-#define LCD_CMD_BITS           8
-#define LCD_PARAM_BITS         8
-#else
+
 #define LCD_HOST       SPI2_HOST
 #define LCD_PIXEL_CLOCK_HZ (20 * 1000 * 1000)
 #define LCD_BK_LIGHT_ON_LEVEL  1
@@ -65,8 +44,6 @@
 // Bit number used to represent command and parameter
 #define LCD_CMD_BITS           8
 #define LCD_PARAM_BITS         8
-
-#endif
 
 // the following two lines are required for each screen
 esp_lcd_panel_handle_t panel_handle1 = NULL;
