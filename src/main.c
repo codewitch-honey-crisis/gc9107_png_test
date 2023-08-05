@@ -4,6 +4,7 @@
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/queue.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
@@ -15,7 +16,7 @@
 #include "test.h"
 #define TEST2_IMPLEMENTATION
 #include "test2.h"
-
+#ifdef S3_T_QT
 #define LCD_HOST       SPI2_HOST
 #define LCD_PIXEL_CLOCK_HZ (20 * 1000 * 1000)
 #define LCD_BK_LIGHT_ON_LEVEL  0
@@ -36,11 +37,44 @@
 // Bit number used to represent command and parameter
 #define LCD_CMD_BITS           8
 #define LCD_PARAM_BITS         8
+#else
+#define LCD_HOST       SPI2_HOST
+#define LCD_PIXEL_CLOCK_HZ (20 * 1000 * 1000)
+#define LCD_BK_LIGHT_ON_LEVEL  1
+#define LCD_BK_LIGHT_OFF_LEVEL !LCD_BK_LIGHT_ON_LEVEL
+#define LCD_PIN_NUM_DATA0          23  //!< for 1-line SPI, this also refereed as MOSI
+#define LCD_PIN_NUM_PCLK           18
+#define LCD1_PIN_NUM_CS             5
+#define LCD1_PIN_NUM_DC             2
+#define LCD1_PIN_NUM_RST            15
+#define LCD1_PIN_NUM_BK_LIGHT       4
+#define LCD_X_OFFSET               2
+#define LCD_Y_OFFSET               1
+#define LCD_INVERT_COLOR
+#define LCD_COLOR_SPACE LCD_RGB_ENDIAN_BGR
+// The pixel number in horizontal and vertical
+#define LCD_H_RES              128
+#define LCD_V_RES              115
+// Bit number used to represent command and parameter
+#define LCD_CMD_BITS           8
+#define LCD_PARAM_BITS         8
 
+#endif
+
+// the following two lines are required for each screen
 esp_lcd_panel_handle_t panel_handle1 = NULL;
 esp_lcd_panel_io_handle_t io_handle1 = NULL;
 
+// holds our buffer for sending to the display.
+uint8_t fb_data[LCD_V_RES*LCD_H_RES*2];
+// the PNG loader
+pngle_t* png = NULL;
+typedef struct {
+
+} msg_t;
+QueueHandle_t msg_queue;
 void init_power() {
+#ifdef S3_T_QT
     // for the T-QT Pro. 
     // if the device is battery powered
     // put power init code here
@@ -51,7 +85,7 @@ void init_power() {
     // Initialize the power pin GPIO (T-QT Pro)
     ESP_ERROR_CHECK(gpio_config(&pwr_gpio_config));
     ESP_ERROR_CHECK(gpio_set_level((gpio_num_t)4, 1));
-    
+#endif
 }
 
 void init_spi() {
@@ -64,7 +98,6 @@ void init_spi() {
     buscfg.quadwp_io_num = -1;
     buscfg.quadhd_io_num = -1;
     buscfg.max_transfer_sz = LCD_V_RES * LCD_H_RES * 2 + 8;
-
     // Initialize the SPI bus
     ESP_ERROR_CHECK(spi_bus_initialize(LCD_HOST, &buscfg, SPI_DMA_CH_AUTO));
 }
@@ -125,11 +158,12 @@ void init_display(int host, uint8_t pin_cs, uint8_t pin_dc,uint8_t pin_rst,uint8
 
     // Turn on backlight (Different LCD screens may need different levels)
     ESP_ERROR_CHECK(gpio_set_level((gpio_num_t)pin_bkl, LCD_BK_LIGHT_ON_LEVEL));
+    if(out_panel_handle==NULL) {
+        printf("Panel not initialized.\n");
+        while(1) vTaskDelay(5);
+    }
 
 }
-// holds our buffer for sending to the display.
-uint8_t fb_data[LCD_V_RES*LCD_H_RES*2];
-pngle_t* png = NULL;
 void pngle_draw_cb(pngle_t* pngle, uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint8_t rgba[4], void* state) {
     int xe = x+w;
     int ye = y+h;
@@ -165,6 +199,15 @@ void pngle_draw_cb(pngle_t* pngle, uint32_t x, uint32_t y, uint32_t w, uint32_t 
         start+=stride;
     }
 }
+void init_png() {
+    // initialize the png loader
+    png = pngle_new();
+    if(png==NULL) {
+        printf("PNG library not initialized.\n");
+        while(1) vTaskDelay(5);
+    }
+    pngle_set_draw_callback(png,pngle_draw_cb,NULL);
+}
 // adapt this to read and decode the PNG from the serial stream into fb_data
 // void read_png(FILE* handle, uint8_t* data,size_t len) {
 //     uint8_t png_feed[1024];
@@ -179,30 +222,18 @@ void pngle_draw_cb(pngle_t* pngle, uint32_t x, uint32_t y, uint32_t w, uint32_t 
 //     }
 // }
 void app_main() {
-    init_power();
-       
+    init_power();   
     init_spi();
     init_display(LCD_HOST, LCD1_PIN_NUM_CS,LCD1_PIN_NUM_DC,LCD1_PIN_NUM_RST,LCD1_PIN_NUM_BK_LIGHT,&panel_handle1,&io_handle1);
-    // init more displays here - if your RST all share the same line pass -1 for subsequent reset pins.
-    if(panel_handle1==NULL) {
-        printf("Panel not initialized.\n");
-        while(1) vTaskDelay(5);
-    }
-    // initialize the png loader
-    png = pngle_new();
-    if(png==NULL) {
-        printf("PNG library not initialized.\n");
-        while(1) vTaskDelay(5);
-    }
-    pngle_set_draw_callback(png,pngle_draw_cb,NULL);
-    // load the png
+    init_png();
+    // load the png into fb_data
     pngle_feed(png,test,sizeof(test));
+    // call this every time you're done loading a png
     pngle_reset(png);
     // draw it to the first display
     esp_lcd_panel_draw_bitmap(panel_handle1,0,0,LCD_H_RES,LCD_V_RES,fb_data);
     vTaskDelay(pdMS_TO_TICKS(3000));
-    
-    // load the png
+    // load the png into fb_data
     pngle_feed(png,test2,sizeof(test2));
     pngle_reset(png);
     // draw it to the first display
