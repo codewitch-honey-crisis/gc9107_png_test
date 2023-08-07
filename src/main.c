@@ -138,7 +138,7 @@ void init_display(int host, int8_t pin_cs, int8_t pin_dc,int8_t pin_rst,int8_t p
 #ifdef LCD_INVERT_COLOR
     ESP_ERROR_CHECK(esp_lcd_panel_invert_color(*out_panel_handle, true));
 #endif
-
+    
     // Turn on the screen
     ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(*out_panel_handle, true));
     if(pin_bkl>-1) {
@@ -152,6 +152,7 @@ void init_display(int host, int8_t pin_cs, int8_t pin_dc,int8_t pin_rst,int8_t p
 
 }
 void pngle_draw_cb(pngle_t* pngle, uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint8_t rgba[4], void* state) {
+    uint8_t* buffer = (uint8_t*)pngle_get_user_data(png);
     int xe = x+w;
     int ye = y+h;
     if(xe>LCD_H_RES) {
@@ -176,7 +177,7 @@ void pngle_draw_cb(pngle_t* pngle, uint32_t x, uint32_t y, uint32_t w, uint32_t 
     uint8_t lsb = col&0xFF;
     size_t stride = LCD_H_RES*2;
     
-    uint8_t* start = fb_data+ y*stride;
+    uint8_t* start = buffer+ y*stride;
     for(int py = y;py<ye;++py) {
         uint8_t* x_ptr = start + (x*2);
         for(int px=x;px<xe;++px) {
@@ -209,24 +210,26 @@ void init_png() {
 //     }
 // }
 void app_main() {
+
     init_power();   
     init_spi();
     init_display(LCD_HOST, LCD1_PIN_NUM_CS,LCD1_PIN_NUM_DC,LCD1_PIN_NUM_RST,LCD1_PIN_NUM_BK_LIGHT,&panel_handle1,&io_handle1);
-    init_display(LCD_HOST, LCD2_PIN_NUM_CS,LCD2_PIN_NUM_DC,LCD2_PIN_NUM_RST,LCD2_PIN_NUM_BK_LIGHT,&panel_handle2,&io_handle2);
+    //init_display(LCD_HOST, LCD2_PIN_NUM_CS,LCD2_PIN_NUM_DC,LCD2_PIN_NUM_RST,LCD2_PIN_NUM_BK_LIGHT,&panel_handle2,&io_handle2);
     init_png();
+    uint8_t* buffer = (uint8_t*)heap_caps_calloc(1,LCD_V_RES*LCD_H_RES*2,MALLOC_CAP_SPIRAM);
+    if(buffer==NULL) {
+        printf("No PSRAM");
+        while(1) vTaskDelay(5);
+    }
+    pngle_set_user_data(png,buffer);
     // load the png into fb_data
     pngle_feed(png,test,sizeof(test));
     // call this every time you're done loading a png
     pngle_reset(png);
     // draw it to the first display
-    esp_lcd_panel_draw_bitmap(panel_handle1,0,0,LCD_H_RES,LCD_V_RES,fb_data);
-    // load the png into fb_data
-    pngle_feed(png,test2,sizeof(test2));
-    pngle_reset(png);
-    // draw it to the second display
-    esp_lcd_panel_draw_bitmap(panel_handle2,0,0,LCD_H_RES,LCD_V_RES,fb_data);
+    esp_lcd_panel_draw_bitmap(panel_handle1,0,0,LCD_H_RES,LCD_V_RES,buffer);
     while(1) vTaskDelay(5);
     // not necessary
-    pngle_destroy(png);
-    
+    free(buffer);
+    pngle_destroy(png); 
 }
